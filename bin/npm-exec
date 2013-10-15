@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+var fs       = require('fs')
+  , path     = require('path')
+  , readJson = require('read-package-json')
+  , npmConf  = require('npmconf')
+  , spawn    = require('../')
+  , argv     = process.argv.slice(2)
+  ;
+
+if (!argv.length) {
+  console.error("No command specified");
+  process.exit(1);
+}
+
+var pkgDir = process.cwd()
+
+debugger
+while (!fs.existsSync(path.join(pkgDir, 'package.json'))) {
+  pkgDir = pkgDir.split(path.sep);
+  pkgDir.pop();
+  if (!pkgDir.length) {
+    console.error('No package.json found');
+    process.exit(2);
+  }
+  pkgDir = '/' + path.join.apply(null, pkgDir);
+}
+
+npmConf.load({}, function (err, conf) {
+  if (err) throw err
+  readJson(path.join(pkgDir, 'package.json'), function (er, pkg) {
+    if (er) throw er;
+    var command = spawn(conf, pkg, argv.join(' '))
+    process.stdin.pipe(command).pipe(process.stdout);
+    command.on('exit', process.exit);
+  });
+})
