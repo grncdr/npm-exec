@@ -65,4 +65,4 @@ to write this module for more information.
 
 ## License
 
-MIT
+BSD
