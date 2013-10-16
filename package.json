@@ -1,6 +1,6 @@
 {
   "name": "npm-exec",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Execute commands in the context of an npm package",
   "main": "index.js",
   "bin": "bin/npm-exec",
