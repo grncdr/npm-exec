@@ -15,7 +15,6 @@ if (!argv.length) {
 
 var pkgDir = process.cwd()
 
-debugger
 while (!fs.existsSync(path.join(pkgDir, 'package.json'))) {
   pkgDir = pkgDir.split(path.sep);
   pkgDir.pop();
