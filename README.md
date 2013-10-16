@@ -13,11 +13,33 @@ npm-exec 'echo $npm_package_name'
 # mydependency
 ```
 
+A more compelling example, notice how none of the testing tools need to be installed globally:
+
+```
+$ cd mymodule
+$ npm install -D browserify coverify testling tape
+
+$ cat <<EOF > index.js
+module.exports = function (x) { return x * x }
+EOF
+
+$ cat <<EOF > test.js
+var mymodule = require('./');
+require('tape')('my browserified test', function (t) {
+  t.equals(9, mymodule.doSomething(3))
+  t.end()
+})
+EOF
+
+$ npm-exec 'browserify -t coverify test.js | testling | coverify'
+```
+
 ## What it does
 
-Loads the same environment variables that would be present for `npm run-script
-<blah>`, but executes arbitrary bash command lines (even on windows! Thanks
-to [bashful](https://github.com/substack/bashful)).
+Loads the same environment that would be present for `npm run-script <blah>`,
+but executes arbitrary bash command lines. (even on windows! Thanks to
+[bashful](https://github.com/substack/bashful)). This includes modifying
+`$PATH` so scripts in `node_modules/.bin` will be used before global modules.
 
 ## What it might do
 
