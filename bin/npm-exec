@@ -29,8 +29,6 @@ npmConf.load({}, function (err, conf) {
   if (err) throw err
   readJson(path.join(pkgDir, 'package.json'), function (er, pkg) {
     if (er) throw er;
-    var command = spawn(conf, pkg, argv.join(' '))
-    process.stdin.pipe(command).pipe(process.stdout);
-    command.on('exit', process.exit);
+    spawn(conf, pkg, argv.join(' '))
   });
 })

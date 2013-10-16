@@ -21,10 +21,11 @@ if (process.platform === "win32") {
 function spawn(conf, pkg, script, opts) {
   opts = opts || {};
 
-  var cwd    = opts.cwd     || process.cwd()
-    , input  = opts.input   || process.stdin
-    , output = opts.output  || process.stdout
+  var cwd    = opts.cwd    || process.cwd()
     , env    = makeEnv(pkg)
+    , stdin  = opts.stdin  || process.stdin
+    , stdout = opts.stdout || process.stdout
+    , stderr = opts.stderr || process.stderr
     ;
 
   addConf(pkg.name, pkg.version, conf, env)
@@ -40,9 +41,9 @@ function spawn(conf, pkg, script, opts) {
 
   var shell = bash({
     env:   env,
-    spawn: childProcess.spawn,
+    spawn: spawnWith([stdin, stdout, stderr]),
     read:  fs.createReadStream,
-    write: fs.createWriteStream,
+    write: fs.createWriteStream
   })
 
   return shell.eval(script);
@@ -156,3 +157,9 @@ function makePath(cwd, oldValue) {
   return pathArr.join(process.platform === "win32" ? ";" : ":")
 }
 
+function spawnWith(stdio) {
+  return function _spawn(cmd, args, opts) {
+    opts.stdio = stdio
+    return childProcess.spawn(cmd, args, opts)
+  }
+}
