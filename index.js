@@ -6,7 +6,7 @@ var path         = require("path")
   , PATH         = "PATH"
   ;
 
-module.exports = spawn;
+module.exports = shell;
 
 // windows calls it's path "Path" usually, but this is not guaranteed.
 if (process.platform === "win32") {
@@ -18,11 +18,11 @@ if (process.platform === "win32") {
   })
 }
 
-function spawn(conf, pkg, script, opts) {
+function shell(conf, pkg, opts) {
   opts = opts || {};
 
-  var cwd    = opts.cwd    || process.cwd()
-    , env    = makeEnv(pkg)
+  var cwd = opts.cwd || process.cwd()
+    , env = makeEnv(pkg)
     , stdin  = opts.stdin  || process.stdin
     , stdout = opts.stdout || process.stdout
     , stderr = opts.stderr || process.stderr
@@ -39,14 +39,13 @@ function spawn(conf, pkg, script, opts) {
     }
   }
 
-  var shell = bash({
+  var sh = bash({
     env:   env,
-    spawn: spawnWith([stdin, stdout, stderr]),
+    spawn: spawnWith([stdin, 'pipe', stderr]),
     read:  fs.createReadStream,
     write: fs.createWriteStream
   })
-
-  return shell.eval(script);
+  return sh;
 }
 
 function makeEnv (data, prefix, env) {

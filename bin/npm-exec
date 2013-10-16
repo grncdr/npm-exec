@@ -4,7 +4,7 @@ var fs       = require('fs')
   , path     = require('path')
   , readJson = require('read-package-json')
   , npmConf  = require('npmconf')
-  , spawn    = require('../')
+  , shell    = require('../')
   , argv     = process.argv.slice(2)
   ;
 
@@ -28,7 +28,10 @@ while (!fs.existsSync(path.join(pkgDir, 'package.json'))) {
 npmConf.load({}, function (err, conf) {
   if (err) throw err
   readJson(path.join(pkgDir, 'package.json'), function (er, pkg) {
-    if (er) throw er;
-    spawn(conf, pkg, argv.join(' '))
+    if (er) throw er
+    var sh = shell(conf, pkg)
+    var p = sh.eval(argv.join(' '))
+    p.pipe(process.stdout)
+    p.on('exit', function () { process.stdin.end() })
   });
 })
