@@ -1,9 +1,10 @@
-var path         = require("path")
-  , fs           = require('fs')
-  , childProcess = require('child_process')
-  , bash         = require('bashful')
-  , Stream       = require('stream').Stream
-  , PATH         = "PATH"
+var path    = require("path")
+  , fs      = require('fs')
+  , stream  = require('stream')
+  , resumer = require('resumer')
+  , bash    = require('bashful')
+  , spawn   = require('pty.js').spawn
+  , PATH    = "PATH"
   ;
 
 module.exports = shell;
@@ -18,14 +19,16 @@ if (process.platform === "win32") {
   })
 }
 
+shell.exec = function (conf, pkg, opts, args) {
+  if (!args) args = opts, opts = {}
+  return resumer(args.join(' ')).pipe(sh.createStream())
+}
+
 function shell(conf, pkg, opts) {
   opts = opts || {};
 
   var cwd = opts.cwd || process.cwd()
     , env = makeEnv(pkg)
-    , stdin  = opts.stdin  || process.stdin
-    , stdout = opts.stdout || process.stdout
-    , stderr = opts.stderr || process.stderr
     ;
 
   addConf(pkg.name, pkg.version, conf, env)
@@ -39,13 +42,13 @@ function shell(conf, pkg, opts) {
     }
   }
 
-  var sh = bash({
-    env:   env,
-    spawn: spawnWith([stdin, 'pipe', stderr]),
-    read:  fs.createReadStream,
-    write: fs.createWriteStream
+  return bash({
+    env:    env,
+    spawn:  spawn,
+    read:   fs.createReadStream,
+    write:  fs.createWriteStream,
+    exists: fs.exists
   })
-  return sh;
 }
 
 function makeEnv (data, prefix, env) {
@@ -104,7 +107,7 @@ function addConf(name, version, conf, env) {
       return
     }
     var value = conf.get(i)
-    if (value instanceof Stream || Array.isArray(value)) return
+    if (value instanceof stream.Stream || Array.isArray(value)) return
     if (!value) value = ""
     else if (typeof value !== "string") value = JSON.stringify(value)
 
@@ -154,11 +157,4 @@ function makePath(cwd, oldValue) {
 
   if (oldValue) pathArr.push(oldValue)
   return pathArr.join(process.platform === "win32" ? ";" : ":")
-}
-
-function spawnWith(stdio) {
-  return function _spawn(cmd, args, opts) {
-    opts.stdio = stdio
-    return childProcess.spawn(cmd, args, opts)
-  }
 }

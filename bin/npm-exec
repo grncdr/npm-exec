@@ -29,9 +29,20 @@ npmConf.load({}, function (err, conf) {
   if (err) throw err
   readJson(path.join(pkgDir, 'package.json'), function (er, pkg) {
     if (er) throw er
-    var sh = shell(conf, pkg)
-    var p = sh.eval(argv.join(' '))
-    p.pipe(process.stdout)
-    p.on('exit', function () { process.stdin.end() })
+    runCommandLine(shell(conf, pkg), argv);
   });
 })
+
+function runCommandLine (sh) {
+  var p = sh.eval(argv.join(' '));
+
+  process.stdin.setRawMode(true);
+  process.stdin.pipe(p);
+
+  p.on('exit', function (code) {
+    process.stdin.setRawMode(false);
+    process.stdin.unpipe(p);
+    process.exit(code);
+  });
+  p.pipe(process.stdout);
+}
