@@ -1,6 +1,6 @@
 # npm-exec
 
-**Warning** this is just getting started, but is already somewhat usable.
+**Warning** this is not maintained! It might be nice to finish some day, but for the moment I'm not working on it.
 
 ## Usage
 
